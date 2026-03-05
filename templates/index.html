@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="images/favicon.ico" rel="icon">
+   <title>RapGen </title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .card {
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    .btn-custom {
+      background: #1c6ae7ff;
+      color: white;
+      font-weight: bold;
+      border-radius: 25px;
+      padding: 10px 25px;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-custom:hover {
+      background: #849bffff;
+      color: white;
+      transform: scale(1.05);
+    }
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">RapGen AI</a>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container d-flex justify-content-center align-items-center flex-grow-1">
+    <div class="col-md-8 col-lg-6">
+      <div class="card p-4">
+        <div class="card-body">
+          <h2 class="text-center mb-4">Generate MCQs</h2>
+          <p class="text-center text-muted mb-4">
+            Upload a <strong>PDF</strong> or <strong>TXT</strong> file and choose how many questions you want.
+          </p>
+          
+          <form method="POST" enctype="multipart/form-data">
+            
+            <!-- File Upload -->
+            <div class="form-group">
+              <label for="file"><strong>Upload File(s)</strong></label>
+              <input type="file" class="form-control-file border rounded p-2" id="file" name="files[]" multiple required>
+            </div>
+
+            <!-- Number of Questions -->
+            <div class="form-group">
+              <label for="num_questions"><strong>Number of Questions</strong></label>
+              <select class="form-control" id="num_questions" name="num_questions" required>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20">20</option>
+              </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+              <button type="submit" class="btn btn-custom">Generate MCQs</button>
+            </div>
+          </form>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-2">
+    <small>&copy; 2025 RapGen AI | Built with Flask & Bootstrap</small>
+  </footer>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

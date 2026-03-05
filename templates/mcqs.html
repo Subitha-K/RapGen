@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RapGen MCQ's Generate AI</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #74ebd5 0%, #9face6 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .navbar-brand { font-weight: bold; font-size: 1.4rem; }
+    .card { border-radius: 15px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); }
+    .card-title { font-weight: bold; }
+    .btn-custom {
+      background: #1c6ae7ff;
+      color: white;
+      font-weight: bold;
+      border-radius: 25px;
+      padding: 10px 25px;
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-custom:hover {
+      background: #849bffff;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    /* Highlights */
+    .option-correct { background: #d4edda; border-radius: 8px; padding: 6px 10px; }
+    .option-wrong   { background: #f8d7da; border-radius: 8px; padding: 6px 10px; }
+
+    #score-box { display: none; font-size: 1.3rem; font-weight: bold; color: #343a40; margin-top: 20px; }
+    footer { margin-top: auto; }
+    .correct-answer { display: none; } /* hide correct answers until Show Results */
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">RapGen AI</a>
+  </nav>
+
+  <!-- Content -->
+  <div class="container my-4">
+    <h2 class="text-center mb-4">Generated Questions</h2>
+
+    {% for index, mcq in mcqs %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Q{{ index }}: {{ mcq[0] }}?</h5>
+
+        <!-- OPTIONS -->
+        <form>
+          {% set options = ['A', 'B', 'C', 'D'] %}
+          {% set num_choices = mcq[1]|length %}
+          {% for choice_index in range(num_choices) %}
+          <div class="form-check">
+            <input class="form-check-input"
+                   type="radio"
+                   name="answer{{ index }}"
+                   id="choice{{ index }}{{ choice_index }}"
+                   value="{{ options[choice_index] }}">
+            <label class="form-check-label"
+                   for="choice{{ index }}{{ choice_index }}">
+              {{ options[choice_index] }}. {{ mcq[1][choice_index] }}
+            </label>
+          </div>
+          {% endfor %}
+        </form>
+
+        <!-- Correct answer (letter, hidden until results) -->
+        <small class="correct-answer">✔ Correct Answer: {{ mcq[2] }}</small>
+        <span class="d-none correct-key">{{ mcq[2] }}</span>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Buttons -->
+    <div class="text-center">
+      <button id="show-results-btn" class="btn btn-custom">Show Results</button>
+
+      <!-- Hidden Export button (shown after results) -->
+      <a id="export-btn" href="{{ url_for('export_pdf') }}" 
+         class="btn btn-custom ml-2 d-none">Export as PDF</a>
+
+      <div id="score-box" class="alert alert-info mt-3"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-dark text-white text-center py-2">
+    <small>&copy; 2025 RapGen AI | Powered by Flask & Bootstrap</small>
+  </footer>
+
+  <!-- JS -->
+  <script>
+  const showBtn = document.getElementById('show-results-btn');
+  const cards = document.querySelectorAll('.card');
+
+  // Disable button initially
+  showBtn.disabled = true;
+
+  function checkAllAnswered() {
+    let allAnswered = true;
+    cards.forEach((card, idx) => {
+      const name = 'answer' + (idx + 1);
+      const radios = card.querySelectorAll('input[name="' + name + '"]');
+      let answered = false;
+      radios.forEach(r => { if (r.checked) answered = true; });
+      if (!answered) allAnswered = false;
+    });
+    showBtn.disabled = !allAnswered; // Enable only if all answered
+  }
+
+  // Add change listener to all radio buttons
+  cards.forEach((card, idx) => {
+    const name = 'answer' + (idx + 1);
+    const radios = card.querySelectorAll('input[name="' + name + '"]');
+    radios.forEach(r => {
+      r.addEventListener('change', checkAllAnswered);
+    });
+  });
+
+  // When button is clicked -> evaluate
+  showBtn.addEventListener('click', function() {
+    let score = 0;
+    let total = 0;
+
+    cards.forEach((card, idx) => {
+      const correctKeyEl = card.querySelector('.correct-key');
+      const correctLetter = correctKeyEl ? correctKeyEl.innerText.trim() : null;
+      if (!correctLetter) return;
+
+      total++;
+      const name = 'answer' + (idx + 1);
+      const radios = card.querySelectorAll('input[name="' + name + '"]');
+
+      let selectedLetter = null;
+      radios.forEach(r => {
+        const label = card.querySelector('label[for="' + r.id + '"]');
+        if (r.value === correctLetter) {
+          if (label) label.classList.add('option-correct');
+        }
+        if (r.checked) selectedLetter = r.value;
+      });
+
+      if (selectedLetter === correctLetter) {
+        score++;
+      } else {
+        const wrong = card.querySelector('input[name="' + name + '"]:checked');
+        if (wrong) {
+          const wrongLabel = card.querySelector('label[for="' + wrong.id + '"]');
+          if (wrongLabel) wrongLabel.classList.add('option-wrong');
+        }
+      }
+    });
+
+    // Show score
+    const scoreBox = document.getElementById('score-box');
+    scoreBox.style.display = 'block';
+    scoreBox.innerText = "You got " + score + " out of " + total + " correct ✅";
+
+    // Hide button to prevent re-click
+    this.style.display = 'none';
+
+    // Show Export PDF button
+    document.getElementById('export-btn').classList.remove('d-none');
+  });
+</script>
+
+
+
+</body>
+</html>
