@@ -2,4 +2,5 @@ Flask
 Flask-Bootstrap
 spacy
 PyPDF2
+gunicorn
 reportlab
